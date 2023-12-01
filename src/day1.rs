@@ -1,4 +1,4 @@
-fn check(asdf: &str, dumb: bool) -> Option<i64> {
+fn check(asdf: &str, dumb: bool) -> Option<u32> {
     //println!("asdf: {}", asdf);
     if dumb {
         if asdf.len() >= 3 && &asdf[..3] == "one" {
@@ -22,27 +22,7 @@ fn check(asdf: &str, dumb: bool) -> Option<i64> {
         }
     }
 
-    if asdf.chars().nth(0).unwrap() == '1' {
-        Some(1)
-    } else if asdf.chars().nth(0).unwrap() == '2' {
-        Some(2)
-    } else if asdf.chars().nth(0).unwrap() == '3' {
-        Some(3)
-    } else if asdf.chars().nth(0).unwrap() == '4' {
-        Some(4)
-    } else if asdf.chars().nth(0).unwrap() == '5' {
-        Some(5)
-    } else if asdf.chars().nth(0).unwrap() == '6' {
-        Some(6)
-    } else if asdf.chars().nth(0).unwrap() == '7' {
-        Some(7)
-    } else if asdf.chars().nth(0).unwrap() == '8' {
-        Some(8)
-    } else if asdf.chars().nth(0).unwrap() == '9' {
-        Some(9)
-    } else {
-        None
-    }
+    asdf.chars().nth(0).unwrap().to_digit(10)
 }
 
 #[aoc_generator(day1)]
@@ -50,7 +30,7 @@ pub fn load_input(input: &str) -> String {
     input.to_string()
 }
 
-fn parse(input: &str, dumb: bool) -> Vec<i64> {
+fn parse(input: &str, dumb: bool) -> Vec<u32> {
     let mut output = vec![];
     for _line in input.lines() {
         let mut digits = vec![];
