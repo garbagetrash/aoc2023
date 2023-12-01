@@ -22,7 +22,7 @@ fn check(asdf: &str, dumb: bool) -> Option<u32> {
         }
     }
 
-    asdf.chars().nth(0).unwrap().to_digit(10)
+    asdf.chars().next().unwrap().to_digit(10)
 }
 
 #[aoc_generator(day1)]
