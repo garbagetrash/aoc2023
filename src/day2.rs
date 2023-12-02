@@ -34,7 +34,11 @@ pub fn load_input(input: &str) -> Input {
     games
 }
 
-fn solve1(input: &Input, limit_red: usize, limit_green: usize, limit_blue: usize) -> usize {
+#[aoc(day2, part1)]
+pub fn part1(input: &Input) -> usize {
+    let limit_red = 12;
+    let limit_green = 13;
+    let limit_blue = 14;
     let mut output = 0;
     for (i, game) in input.iter().enumerate() {
         let mut possible = true;
@@ -60,12 +64,8 @@ fn solve1(input: &Input, limit_red: usize, limit_green: usize, limit_blue: usize
     output
 }
 
-#[aoc(day2, part1)]
-pub fn part1(input: &Input) -> usize {
-    solve1(input, 12, 13, 14)
-}
-
-fn solve2(input: &Input) -> usize {
+#[aoc(day2, part2)]
+pub fn part2(input: &Input) -> usize {
     let mut output = 0;
     for game in input {
         let mut maxred = 0;
@@ -87,11 +87,6 @@ fn solve2(input: &Input) -> usize {
         output += power;
     }
     output
-}
-
-#[aoc(day2, part2)]
-pub fn part2(input: &Input) -> usize {
-    solve2(input)
 }
 
 #[cfg(test)]
