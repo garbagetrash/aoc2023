@@ -35,31 +35,33 @@ pub fn part1(input: &Input) -> usize {
 }
 
 #[aoc(day6, part2)]
-pub fn part2(input: &Input) -> usize {
+pub fn part2(input: &Input) -> i64 {
     let time = input
         .iter()
         .cloned()
         .map(|x| x.0.to_string())
         .fold(String::new(), |acc, x| acc + &x)
-        .parse::<usize>()
+        .parse::<i64>()
         .unwrap();
     let dist = input
         .iter()
         .cloned()
         .map(|x| x.1.to_string())
         .fold(String::new(), |acc, x| acc + &x)
-        .parse::<usize>()
+        .parse::<i64>()
         .unwrap();
 
     // d = (t - v) * v
     // 0 <= v <= t
-    let mut cnt = 0;
-    for v in 0..time {
-        if (time - v) * v > dist {
-            cnt += 1;
-        }
-    }
-    cnt
+    // 0 = -v^2 + tv - d
+    // Solve for roots, take the |r0 - r1| since function is concave
+    // roots = (-b +/- sqrt{b^2 - 4ac}) / 2a
+    // a = -1, b = t, c = -d
+
+    let ac4 = 4 * dist;
+    let root1 = (-time as f64 + ((time * time - ac4) as f64).sqrt()) / -2.0;
+    let root2 = (-time as f64 - ((time * time - ac4) as f64).sqrt()) / -2.0;
+    (root1.ceil() as i64 - root2.ceil() as i64).abs()
 }
 
 #[cfg(test)]
