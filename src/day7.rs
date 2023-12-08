@@ -52,7 +52,7 @@ fn hand_value2(hand: &str) -> i64 {
     output
 }
 
-fn get_strength(hand: &str) -> i64 {
+fn get_strength(hand: &str, dumb: bool) -> i64 {
     let mut values: HashMap<char, i64> = HashMap::new();
     for c in hand.chars() {
         if let Some(num) = values.get_mut(&c) {
@@ -62,7 +62,13 @@ fn get_strength(hand: &str) -> i64 {
         }
     }
 
-    let raw_hand_value = hand_value(hand);
+    let mut raw_hand_value;
+    if !dumb {
+        raw_hand_value = hand_value(hand);
+    } else {
+        raw_hand_value = hand_value2(hand);
+    }
+
     for (k, &v) in &values {
         if v == 5 {
             // 5 of a kind
@@ -112,6 +118,31 @@ fn get_strength(hand: &str) -> i64 {
     return raw_hand_value;
 }
 
+fn swap_jokers(hands: &[String]) -> Vec<String> {
+    let mut output = vec![];
+    let cards = vec!['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+    println!("hands preswap: {:?}", hands);
+    for hand in hands {
+        let mut j_replaced = false;
+        for (i, c) in hand.chars().enumerate() {
+            if c == 'J' {
+                for card in &cards {
+                    let mut temphand = hand.to_string();
+                    temphand.replace_range(i..i+1, &card.to_string());
+                    output.push(temphand);
+                }
+                j_replaced = true;
+                break;
+            }
+        }
+        if !j_replaced {
+            output.push(hand.to_string());
+        }
+    }
+    println!("hands postswap: {:?}", output);
+    output
+}
+
 fn strobe_j_values(hand: &str) -> i64 {
     let mut idxs = vec![];
     for (i, c) in hand.chars().enumerate() {
@@ -120,21 +151,12 @@ fn strobe_j_values(hand: &str) -> i64 {
         }
     }
 
-    let cards = vec!['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
-    let mut hands = vec![];
-    if idxs.len() == 0 {
-        hands.push(hand.to_string());
-    }
-    // by replacing only 1 joker at a time we leave other jokers in...
-    for idx in idxs {
-        for card in &cards {
-            let mut temphand = hand.to_string();
-            temphand.replace_range(idx..idx+1, &card.to_string());
-            hands.push(temphand);
-        }
+    let mut hands = vec![hand.to_string()];
+    for _ in idxs {
+        hands = swap_jokers(&hands);
     }
     println!("{:?}", hands);
-    hands.iter().map(|h| get_strength(h)).max().unwrap()
+    hands.iter().map(|h| get_strength(h, true)).max().unwrap()
 }
 
 fn get_strength2(hand: &str) -> i64 {
@@ -155,7 +177,7 @@ pub fn load_input(input: &str) -> Input {
 pub fn part1(input: &Input) -> i64 {
     let mut output = 0;
     let mut hands: Vec<_> = input.iter().map(|x| x.0.clone()).collect();
-    hands.sort_by(|a, b| get_strength(&a.hand).cmp(&get_strength(&b.hand)));
+    hands.sort_by(|a, b| get_strength(&a.hand, false).cmp(&get_strength(&b.hand, false)));
     for (hand, bid) in input {
         let rank = hands.iter().position(|x| x == hand).unwrap() as i64 + 1;
         output += rank * bid;
@@ -195,5 +217,8 @@ mod test {
         let input = read_to_string("input/2023/07a.txt").unwrap();
         let input = load_input(&input);
         assert_eq!(part2(&input), 5905);
+        let hand = String::from("JA345");
+        let other = String::from("22456");
+        assert!(get_strength2(&hand) < get_strength2(&other));
     }
 }
