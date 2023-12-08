@@ -52,6 +52,46 @@ fn hand_value2(hand: &str) -> i64 {
     output
 }
 
+// 7 - 5 of a kind
+// 6 - 4 of a kind
+// 5 - full house
+// 4 - 3 of a kind
+// 3 - 2 pair
+// 2 - 1 pair
+// 1 - high card
+fn determine_hand(hand: &str, part2: bool) -> i64 {
+    let mut values: HashMap<char, i64> = HashMap::new();
+    for c in hand.chars() {
+        if let Some(num) = values.get_mut(&c) {
+            *num += 1;
+        } else {
+            values.insert(c, 1);
+        }
+    }
+
+    if values.len() == 1 {
+        // Five of a kind
+        7
+    } else if values.len() == 2 {
+        // Full house or 4 of a kind
+        let cnt1 = *values.iter().next().map(|x| x.1).unwrap();
+        if cnt1 == 4 || cnt1 == 1 {
+            6
+        } else {
+            5
+        }
+    } else if values.len() == 3 {
+        // 3 of a kind or 2 pair
+        3
+    } else if values.len() == 4 {
+        // 1 pair
+        2
+    } else {
+        // High card
+        1
+    }
+}
+
 fn get_strength(hand: &str, dumb: bool) -> i64 {
     let mut values: HashMap<char, i64> = HashMap::new();
     for c in hand.chars() {
