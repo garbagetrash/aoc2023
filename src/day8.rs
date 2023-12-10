@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use scan_fmt::scan_fmt;
+use num::Integer;
 
 type Input = (Vec<char>, HashMap<String, (String, String)>);
 
@@ -49,45 +50,51 @@ pub fn part1(input: &Input) -> i64 {
     cnt
 }
 
+fn find_cycle_lengths(instructions: &[char], map: &HashMap<String, (String, String)>) -> Vec<usize> {
+    let end_nodes: Vec<String> = map.keys().cloned().filter(|k| k.chars().last().unwrap() == 'Z').collect();
+
+    let mut lengths = vec![];
+    for start in end_nodes {
+        let mut fwdmap: HashMap<(String, usize), String> = HashMap::new();
+        let mut node = start.to_string();
+        let mut idx = 0;
+        let mut endcnt = 0;
+        loop {
+            let last_node = node.clone();
+            if let Some(n) = map.get(&node) {
+                let dir = instructions[idx];
+                if dir == 'L' {
+                    node = n.0.clone();
+                } else {
+                    node = n.1.to_string();
+                }
+            } else {
+                panic!("couldn't find this node in map!");
+            }
+
+            // `node` points to next node now, and `last_node` points to current
+            if let Some(_) = fwdmap.insert((last_node.clone(), idx), node.clone()) {
+                // if already present, break
+                break;
+            }
+
+            idx += 1;
+            if idx >= instructions.len() {
+                idx = 0;
+            }
+        }
+
+        lengths.push(fwdmap.len());
+    }
+    lengths
+}
+
 #[aoc(day8, part2)]
 pub fn part2(input: &Input) -> usize {
     let (inst, map) = input;
-    let mut start_nodes: Vec<_> = map.keys().filter(|k| k.chars().last().unwrap() == 'A').collect();
-    println!("start_nodes: {:?}", start_nodes);
-
-    let mut end_nodes: Vec<_> = map.keys().filter(|k| k.chars().last().unwrap() == 'Z').collect();
-    println!("end_nodes: {:?}", end_nodes);
-
-    let mut fwdmap: HashMap<(String, usize), String> = HashMap::new();
-    let mut node = String::from("AAA");
-    let mut idx = 0;
-    loop {
-        //println!("node: {}", node);
-        let last_node = node.clone();
-        if let Some(n) = map.get(&node) {
-            let dir = inst[idx];
-            if dir == 'L' {
-                node = n.0.clone();
-            } else {
-                node = n.1.to_string();
-            }
-        } else {
-            panic!("asdf");
-        }
-
-        if let Some(_) = fwdmap.insert((last_node.clone(), idx), node.clone()) {
-            // if already present, break
-            break;
-        }
-
-        idx += 1;
-        if idx >= inst.len() {
-            idx = 0;
-        }
-    }
-
-    println!("fwdmap.len(): {}", fwdmap.len());
-    0
+    let cycle_lengths = find_cycle_lengths(inst, &map);
+    let lcm05 = cycle_lengths.iter().fold(1, |a, b| a.lcm(b));
+    lcm05
 }
 
 #[cfg(test)]
