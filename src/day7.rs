@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet, VecDeque};
 use scan_fmt::scan_fmt;
 use std::cmp::Ordering;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 type Input = Vec<(Hand, i64)>;
 
@@ -168,7 +168,7 @@ fn swap_jokers(hands: &[String]) -> Vec<String> {
             if c == 'J' {
                 for card in &cards {
                     let mut temphand = hand.to_string();
-                    temphand.replace_range(i..i+1, &card.to_string());
+                    temphand.replace_range(i..i + 1, &card.to_string());
                     output.push(temphand);
                 }
                 j_replaced = true;
@@ -208,7 +208,12 @@ pub fn load_input(input: &str) -> Input {
     let mut output = vec![];
     for line in input.lines() {
         let derp: Vec<_> = line.split(' ').collect();
-        output.push((Hand{ hand: derp[0].to_string() }, derp[1].parse::<i64>().unwrap()));
+        output.push((
+            Hand {
+                hand: derp[0].to_string(),
+            },
+            derp[1].parse::<i64>().unwrap(),
+        ));
     }
     output
 }

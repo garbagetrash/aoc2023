@@ -1,9 +1,7 @@
-use std::collections::{HashMap, HashSet, VecDeque};
-use scan_fmt::scan_fmt;
 use num::Integer;
+use std::collections::HashMap;
 
 type Input = (Vec<char>, HashMap<String, (String, String)>);
-
 
 #[aoc_generator(day8)]
 pub fn load_input(input: &str) -> Input {
@@ -12,8 +10,13 @@ pub fn load_input(input: &str) -> Input {
     for line in input.lines().skip(2) {
         let temp: Vec<_> = line.split(' ').collect();
         let node = temp[0].to_string();
-        let left = temp[2].strip_prefix("(").unwrap().strip_suffix(",").unwrap().to_string();
-        let right = temp[3].strip_suffix(")").unwrap().to_string();
+        let left = temp[2]
+            .strip_prefix('(')
+            .unwrap()
+            .strip_suffix(',')
+            .unwrap()
+            .to_string();
+        let right = temp[3].strip_suffix(')').unwrap().to_string();
         mapping.insert(node, (left, right));
     }
     (instructions, mapping)
@@ -50,15 +53,17 @@ pub fn part1(input: &Input) -> i64 {
     cnt
 }
 
-fn find_cycle_lengths(instructions: &[char], map: &HashMap<String, (String, String)>) -> Vec<usize> {
-    let end_nodes: Vec<String> = map.keys().cloned().filter(|k| k.chars().last().unwrap() == 'Z').collect();
+fn find_cycle_lengths(
+    instructions: &[char],
+    map: &HashMap<String, (String, String)>,
+) -> Vec<usize> {
+    let end_nodes: Vec<String> = map.keys().cloned().filter(|k| k.ends_with('Z')).collect();
 
     let mut lengths = vec![];
     for start in end_nodes {
         let mut fwdmap: HashMap<(String, usize), String> = HashMap::new();
         let mut node = start.to_string();
         let mut idx = 0;
-        let mut endcnt = 0;
         loop {
             let last_node = node.clone();
             if let Some(n) = map.get(&node) {
@@ -73,7 +78,10 @@ fn find_cycle_lengths(instructions: &[char], map: &HashMap<String, (String, Stri
             }
 
             // `node` points to next node now, and `last_node` points to current
-            if let Some(_) = fwdmap.insert((last_node.clone(), idx), node.clone()) {
+            if fwdmap
+                .insert((last_node.clone(), idx), node.clone())
+                .is_some()
+            {
                 // if already present, break
                 break;
             }
@@ -92,7 +100,7 @@ fn find_cycle_lengths(instructions: &[char], map: &HashMap<String, (String, Stri
 #[aoc(day8, part2)]
 pub fn part2(input: &Input) -> usize {
     let (inst, map) = input;
-    let cycle_lengths = find_cycle_lengths(inst, &map);
+    let cycle_lengths = find_cycle_lengths(inst, map);
     let lcm05 = cycle_lengths.iter().fold(1, |a, b| a.lcm(b));
     lcm05
 }

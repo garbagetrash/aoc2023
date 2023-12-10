@@ -135,15 +135,16 @@ pub fn part2(input: &Input) -> i64 {
     let min_seed = seed_pairs.iter().map(|x| x.0).min().unwrap();
     println!("min_seed: {}", min_seed);
 
-    let min_interval_value = rules.iter().map(|_x| {
-        _x.iter().map(|x| {
-            if x.0 < x.1 {
-                x.0
-            } else {
-                x.1
-            }
-        }).min().unwrap()
-    }).min().unwrap();
+    let min_interval_value = rules
+        .iter()
+        .map(|_x| {
+            _x.iter()
+                .map(|x| if x.0 < x.1 { x.0 } else { x.1 })
+                .min()
+                .unwrap()
+        })
+        .min()
+        .unwrap();
     println!("min_interval_value: {}", min_interval_value);
 
     let mut loc = 0;
