@@ -1,19 +1,29 @@
-use scan_fmt::scan_fmt;
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet, VecDeque};
 
 type Input = Vec<(Hand, i64)>;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Hand {
     hand: String,
+    hand_value1: i64,
+    hand_value2: i64,
+}
+
+impl Hand {
+    pub fn new(hand: &str) -> Self {
+        Self {
+            hand: hand.to_string(),
+            hand_value1: determine_hand(hand, false),
+            hand_value2: determine_hand(hand, true),
+        }
+    }
 }
 
 // 13 cards
 // 7 hand types
 
-fn card_to_num(card: char) -> i64 {
-    match card {
+fn card_to_num(card: char, part2: bool) -> i64 {
+    let mut value = match card {
         'A' => 13,
         'K' => 12,
         'Q' => 11,
@@ -28,28 +38,26 @@ fn card_to_num(card: char) -> i64 {
         '3' => 2,
         '2' => 1,
         _ => 0,
+    };
+    if part2 && value == 10 {
+        value = 0;
     }
+    value
 }
 
-fn hand_value(hand: &str) -> i64 {
-    let mut output = 0;
-    for (i, card) in hand.chars().enumerate() {
-        let value = card_to_num(card);
-        output += 14_i64.pow(4 - i as u32) * value;
-    }
-    output
-}
-
-fn hand_value2(hand: &str) -> i64 {
-    let mut output = 0;
-    for (i, card) in hand.chars().enumerate() {
-        let mut value = card_to_num(card);
-        if value == 10 {
-            value = 0;
+fn first_greater(first: &str, second: &str, part2: bool) -> bool {
+    for (f, s) in first.chars().zip(second.chars()) {
+        let v1 = card_to_num(f, part2);
+        let v2 = card_to_num(s, part2);
+        match v1.cmp(&v2) {
+            Ordering::Greater => return true,
+            Ordering::Less => return false,
+            _ => (),
         }
-        output += 14_i64.pow(4 - i as u32) * value;
     }
-    output
+    println!("hand1: {}", first);
+    println!("hand2: {}", second);
+    panic!("hands equal!");
 }
 
 // 7 - 5 of a kind
@@ -60,30 +68,51 @@ fn hand_value2(hand: &str) -> i64 {
 // 2 - 1 pair
 // 1 - high card
 fn determine_hand(hand: &str, part2: bool) -> i64 {
-    let mut values: HashMap<char, i64> = HashMap::new();
-    for c in hand.chars() {
-        if let Some(num) = values.get_mut(&c) {
-            *num += 1;
-        } else {
-            values.insert(c, 1);
+    // If part 2, turn jokers into other stuff recursively
+    if part2 {
+        let hands = swap_jokers(hand);
+        let mut bestvalue = determine_hand(&hands[0], false);
+        for hand in &hands[1..] {
+            let v = determine_hand(hand, false);
+            if v > bestvalue {
+                bestvalue = v;
+            }
         }
+        return bestvalue;
     }
 
-    if values.len() == 1 {
+    // `values` is count of each of:
+    // [A, K, Q, J, T, 9, 8, ... 2]
+    // in a given hand
+    let mut values: Vec<usize> = vec![0; 13];
+    for c in hand.chars() {
+        let idx = card_to_num(c, false) as usize - 1;
+        values[idx] += 1;
+    }
+
+    let n = values.iter().filter(|&x| *x > 0).count();
+
+    if n == 1 {
         // Five of a kind
         7
-    } else if values.len() == 2 {
+    } else if n == 2 {
         // Full house or 4 of a kind
-        let cnt1 = *values.iter().next().map(|x| x.1).unwrap();
+        let cnt1 = *values.iter().find(|&&x| x > 0).unwrap();
         if cnt1 == 4 || cnt1 == 1 {
             6
         } else {
             5
         }
-    } else if values.len() == 3 {
+    } else if n == 3 {
         // 3 of a kind or 2 pair
-        3
-    } else if values.len() == 4 {
+        if values.iter().any(|&x| x == 3) {
+            // 3 of a kind
+            4
+        } else {
+            // 2 of a kind
+            3
+        }
+    } else if n == 4 {
         // 1 pair
         2
     } else {
@@ -92,115 +121,68 @@ fn determine_hand(hand: &str, part2: bool) -> i64 {
     }
 }
 
-fn get_strength(hand: &str, dumb: bool) -> i64 {
-    let mut values: HashMap<char, i64> = HashMap::new();
-    for c in hand.chars() {
-        if let Some(num) = values.get_mut(&c) {
-            *num += 1;
-        } else {
-            values.insert(c, 1);
-        }
+fn compare_hands(first: &Hand, second: &Hand, part2: bool) -> Ordering {
+    let mut h1 = first.hand_value1;
+    let mut h2 = second.hand_value1;
+    if part2 {
+        h1 = first.hand_value2;
+        h2 = second.hand_value2;
     }
-
-    let mut raw_hand_value;
-    if !dumb {
-        raw_hand_value = hand_value(hand);
-    } else {
-        raw_hand_value = hand_value2(hand);
-    }
-
-    for (k, &v) in &values {
-        if v == 5 {
-            // 5 of a kind
-            return 14_i64.pow(11) + raw_hand_value;
-        }
-    }
-
-    for (k, &v) in &values {
-        if v == 4 {
-            // 4 of a kind
-            return 14_i64.pow(10) + raw_hand_value;
-        }
-    }
-
-    if values.iter().len() == 2 {
-        for (k, v) in values {
-            if v == 1 || v == 4 {
-                break;
+    match h1.cmp(&h2) {
+        Ordering::Equal => {
+            if first_greater(&first.hand, &second.hand, part2) {
+                Ordering::Greater
+            } else {
+                Ordering::Less
             }
         }
-        // full house
-        return 14_i64.pow(9) + raw_hand_value;
+        Ordering::Greater => Ordering::Greater,
+        Ordering::Less => Ordering::Less,
     }
-
-    for (k, &v) in &values {
-        if v == 3 {
-            // 3 of a kind
-            return 14_i64.pow(8) + raw_hand_value;
-        }
-    }
-
-    if values.iter().len() == 3 {
-        for (k, &v) in &values {
-            if v == 1 || v == 2 {
-                break;
-            }
-        }
-        // two pair
-        return 14_i64.pow(7) + raw_hand_value;
-    }
-
-    if values.iter().len() == 4 {
-        // one pair
-        return 14_i64.pow(6) + raw_hand_value;
-    }
-
-    return raw_hand_value;
 }
 
-fn swap_jokers(hands: &[String]) -> Vec<String> {
-    let mut output = vec![];
-    let cards = vec!['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
-    println!("hands preswap: {:?}", hands);
-    for hand in hands {
-        let mut j_replaced = false;
-        for (i, c) in hand.chars().enumerate() {
-            if c == 'J' {
-                for card in &cards {
-                    let mut temphand = hand.to_string();
-                    temphand.replace_range(i..i + 1, &card.to_string());
-                    output.push(temphand);
-                }
-                j_replaced = true;
+fn swap_jokers(hand: &str) -> Vec<String> {
+    let mut output: Vec<String> = vec![hand.to_string()];
+    loop {
+        let mut next_idx = -1;
+        let mut new = vec![];
+        for (i, h) in output.iter().enumerate() {
+            let mut bail = false;
+            if let Some(idx) = h.chars().position(|c| c == 'J') {
+                new = swap_jokers_work(h, idx);
+                next_idx = i as i64;
+                bail = true;
+            }
+            if bail {
                 break;
             }
         }
-        if !j_replaced {
-            output.push(hand.to_string());
+        if next_idx == -1 {
+            break;
+        } else {
+            output.remove(next_idx as usize);
+            output.append(&mut new);
         }
     }
-    println!("hands postswap: {:?}", output);
     output
 }
 
-fn strobe_j_values(hand: &str) -> i64 {
-    let mut idxs = vec![];
-    for (i, c) in hand.chars().enumerate() {
+fn swap_jokers_work(hand: &str, idx: usize) -> Vec<String> {
+    if hand.contains('J') {
+        let cards = vec!['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+        let mut output = vec![];
+        let c = hand.chars().nth(idx).unwrap();
         if c == 'J' {
-            idxs.push(i);
+            for card in &cards {
+                let mut temphand = hand.to_string();
+                temphand.replace_range(idx..idx + 1, &card.to_string());
+                output.push(temphand);
+            }
         }
+        output
+    } else {
+        vec![hand.to_string()]
     }
-
-    let mut hands = vec![hand.to_string()];
-    for _ in idxs {
-        hands = swap_jokers(&hands);
-    }
-    println!("{:?}", hands);
-    hands.iter().map(|h| get_strength(h, true)).max().unwrap()
-}
-
-fn get_strength2(hand: &str) -> i64 {
-    return strobe_j_values(hand);
 }
 
 #[aoc_generator(day7)]
@@ -208,12 +190,7 @@ pub fn load_input(input: &str) -> Input {
     let mut output = vec![];
     for line in input.lines() {
         let derp: Vec<_> = line.split(' ').collect();
-        output.push((
-            Hand {
-                hand: derp[0].to_string(),
-            },
-            derp[1].parse::<i64>().unwrap(),
-        ));
+        output.push((Hand::new(derp[0]), derp[1].parse::<i64>().unwrap()));
     }
     output
 }
@@ -222,7 +199,7 @@ pub fn load_input(input: &str) -> Input {
 pub fn part1(input: &Input) -> i64 {
     let mut output = 0;
     let mut hands: Vec<_> = input.iter().map(|x| x.0.clone()).collect();
-    hands.sort_by(|a, b| get_strength(&a.hand, false).cmp(&get_strength(&b.hand, false)));
+    hands.sort_by(|a, b| compare_hands(a, b, false));
     for (hand, bid) in input {
         let rank = hands.iter().position(|x| x == hand).unwrap() as i64 + 1;
         output += rank * bid;
@@ -234,12 +211,9 @@ pub fn part1(input: &Input) -> i64 {
 pub fn part2(input: &Input) -> i64 {
     let mut output = 0;
     let mut hands: Vec<_> = input.iter().map(|x| x.0.clone()).collect();
-    hands.sort_by(|a, b| get_strength2(&a.hand).cmp(&get_strength2(&b.hand)));
+    hands.sort_by(|a, b| compare_hands(a, b, true));
     for (hand, bid) in input {
-        println!("hand: {:?}", hand.hand);
-        println!("bid: {}", bid);
         let rank = hands.iter().position(|x| x == hand).unwrap() as i64 + 1;
-        println!("rank: {}", rank);
         output += rank * bid;
     }
     output
@@ -262,8 +236,5 @@ mod test {
         let input = read_to_string("input/2023/07a.txt").unwrap();
         let input = load_input(&input);
         assert_eq!(part2(&input), 5905);
-        let hand = String::from("JA345");
-        let other = String::from("22456");
-        assert!(get_strength2(&hand) < get_strength2(&other));
     }
 }
