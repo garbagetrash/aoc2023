@@ -1,6 +1,4 @@
-use std::collections::{HashMap, HashSet};
-use aoc_helpers::graph::Graph;
-use uuid::Uuid;
+use std::collections::HashMap;
 
 type Input = Vec<HashMap<(i64, i64), char>>;
 
@@ -148,7 +146,7 @@ pub fn part1(input: &Input) -> i64 {
 
         if !done {
             println!();
-            print_map(&map);
+            print_map(map);
         }
     }
     output
@@ -236,7 +234,7 @@ pub fn part2(input: &Input) -> i64 {
 
         if !done {
             println!();
-            print_map(&map);
+            print_map(map);
         }
     }
     output
@@ -246,8 +244,8 @@ pub fn part2(input: &Input) -> i64 {
 fn print_map(map: &HashMap<(i64, i64), char>) {
     let xmax = *map.keys().map(|(x, _)| x).max().unwrap();
     let ymax = *map.keys().map(|(_, y)| y).max().unwrap();
-    for y in 0..ymax+1 {
-        for x in 0..xmax+1 {
+    for y in 0..ymax + 1 {
+        for x in 0..xmax + 1 {
             let c = map.get(&(x, y)).unwrap();
             print!("{}", c);
         }
