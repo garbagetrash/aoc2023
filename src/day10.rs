@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 type Input = (HashMap<(i64, i64), (char, Uuid)>, Graph::<(i64, i64, Tile)>);
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Tile {
     V,
     H,
@@ -235,7 +235,7 @@ pub fn part1(input: &Input) -> i64 {
         }
         let mut new_frontier = HashSet::new();
         for id in &frontier {
-            let node = graph.get_node(*id).unwrap();
+            let node = graph.get_node_from_id(*id).unwrap();
             distmap.insert((node.value.0, node.value.1), dist);
 
             // While we're here, search neighbors of this frontier node for _new_ frontier
@@ -375,7 +375,7 @@ fn waterfill(node1: Uuid, graph: &Graph::<(i64, i64, Tile)>) -> Vec<Uuid> {
 
 fn replace_nonloop(nonloop_ids: &[Uuid], graph: &mut Graph::<(i64, i64, Tile)>) {
     for id in nonloop_ids {
-        if let Some(node) = graph.get_node_mut(*id) {
+        if let Some(node) = graph.get_node_from_id_mut(*id) {
             node.value.2 = Tile::G;
         }
     }
@@ -410,14 +410,6 @@ fn create_corners_graph(map: &HashMap<(i64, i64), (char, Uuid)>) -> Graph::<(i64
         let tile1 = v.0;
         for dir in &dirs {
             if let Some((k2, v2)) = map.get(&(k.0 + dir.0, k.1 + dir.1)) {
-                node2 = output.get_node
-                match tile1 {
-                    Tile::G => {
-                        match v2.0 {
-                            '.' => output.add_edge(
-                        }
-                    },
-                }
             }
         }
     }
@@ -489,7 +481,7 @@ pub fn part2(input: &Input) -> i64 {
     let exterior = waterfill(outside.id, &graph);
 
     let mut interior: Vec<_> = nonloop_ids.into_iter().filter(|x| !exterior.contains(&x)).collect();
-    let interior_nodes: Vec<_> = interior.iter().map(|&u| graph.get_node(u).unwrap()).collect();
+    let interior_nodes: Vec<_> = interior.iter().map(|&u| graph.get_node_from_id(u).unwrap()).collect();
 
     {
         // DEBUG
