@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use rayon::prelude::*;
+use std::collections::HashMap;
 
 type Input = Vec<(String, Vec<usize>)>;
 
@@ -10,7 +10,10 @@ pub fn load_input(input: &str) -> Input {
         let mut part_iter = line.split(' ');
         let arrangement = part_iter.next().unwrap().to_string();
         let right = part_iter.next().unwrap();
-        let segments: Vec<usize> = right.split(',').map(|s| s.parse::<usize>().unwrap()).collect();
+        let segments: Vec<usize> = right
+            .split(',')
+            .map(|s| s.parse::<usize>().unwrap())
+            .collect();
         output.push((arrangement, segments));
     }
     output
@@ -28,7 +31,11 @@ fn build_chunk(n: usize) -> String {
 // Checks if every char in `arr` beginning at the nth is either `?` or matches the corresponding
 // char in `seq`.
 fn check_seq(n: usize, seq: &str, arr: &str) -> bool {
-    arr.chars().skip(n).take(seq.len()).zip(seq.chars()).all(|(c1, c2)| c1 == '?' || c1 == c2)
+    arr.chars()
+        .skip(n)
+        .take(seq.len())
+        .zip(seq.chars())
+        .all(|(c1, c2)| c1 == '?' || c1 == c2)
 }
 
 fn valid_points(seq: &str, arr: &str) -> Vec<u8> {
@@ -66,20 +73,23 @@ fn _solve(chunks: &[String], arr: &str, path: &[u8]) -> Vec<Vec<u8>> {
     */
     //println!("vpoints: {:?}", vpoints);
     if chunks.len() > 1 {
-        vpoints.par_iter().flat_map(|vp| {
-            let this_path = vec![*vp];
-            let offset = vp + chunks[0].len() as u8 - 1;
-            let mut fwd_path = path.to_vec();
-            fwd_path.push(*vp);
-            let mut arrs = _solve(&chunks[1..], &arr[offset as usize..], &fwd_path);
-            let mut intermediate = vec![];
-            for a in arrs {
-                let mut tmp: Vec<u8> = this_path.clone();
-                tmp.append(&mut a.clone());
-                intermediate.push(tmp);
-            }
-            intermediate
-        }).collect()
+        vpoints
+            .par_iter()
+            .flat_map(|vp| {
+                let this_path = vec![*vp];
+                let offset = vp + chunks[0].len() as u8 - 1;
+                let mut fwd_path = path.to_vec();
+                fwd_path.push(*vp);
+                let mut arrs = _solve(&chunks[1..], &arr[offset as usize..], &fwd_path);
+                let mut intermediate = vec![];
+                for a in arrs {
+                    let mut tmp: Vec<u8> = this_path.clone();
+                    tmp.append(&mut a.clone());
+                    intermediate.push(tmp);
+                }
+                intermediate
+            })
+            .collect()
     } else {
         // No other chunks to check
         let mut output = vec![];
@@ -165,22 +175,25 @@ fn unfold(arr: &str) -> String {
 
 #[aoc(day12, part2)]
 pub fn part2(input: &Input) -> usize {
-    input.iter().map(|(arr, _seg)| {
-        let arr = unfold(arr);
-        let mut seg = vec![];
-        for _ in 0..5 {
-            let mut temp = _seg.clone();
-            seg.append(&mut temp);
-        }
-        let chunks: Vec<_> = seg.iter().map(|n| build_chunk(*n)).collect();
-        let mut aug_arr = arr.clone();
-        aug_arr.insert(0, '.');
-        aug_arr.push('.');
+    input
+        .iter()
+        .map(|(arr, _seg)| {
+            let arr = unfold(arr);
+            let mut seg = vec![];
+            for _ in 0..5 {
+                let mut temp = _seg.clone();
+                seg.append(&mut temp);
+            }
+            let chunks: Vec<_> = seg.iter().map(|n| build_chunk(*n)).collect();
+            let mut aug_arr = arr.clone();
+            aug_arr.insert(0, '.');
+            aug_arr.push('.');
 
-        let output = solve(&chunks, &aug_arr, &[]);
-        println!("{}", output);
-        output
-    }).sum()
+            let output = solve(&chunks, &aug_arr, &[]);
+            println!("{}", output);
+            output
+        })
+        .sum()
 }
 
 #[cfg(test)]
