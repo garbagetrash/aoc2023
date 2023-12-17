@@ -39,22 +39,22 @@ impl State {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Path {
-    states: Vec<State>,
+    last_state: Option<State>,
     cost: usize,
 }
 
 impl Path {
     pub fn new() -> Self {
         Self {
-            states: vec![],
+            last_state: None,
             cost: 0,
         }
     }
 
     pub fn push(&mut self, state: State, new_cost: usize) {
-        self.states.push(state);
+        self.last_state = Some(state);
         self.cost += new_cost;
     }
 }
@@ -205,13 +205,13 @@ pub fn solve(input: &Input, part2: bool) -> usize {
             .flat_map(|(_key, path)| {
                 //for path in minpaths.values() {
                 // Where can this path go to?
-                let state = path.states[path.states.len() - 1];
+                let state = path.last_state.unwrap();
                 let next_states_and_costs = next_states(state, &map, part2);
 
                 // Keep track of all these (maybe) new paths to see if any are worth keeping
                 let mut output = vec![];
                 for (new_state, new_cost) in next_states_and_costs {
-                    let mut candidate_path = path.clone();
+                    let mut candidate_path = *path;
                     candidate_path.push(new_state, new_cost);
                     output.push(candidate_path);
                 }
@@ -221,7 +221,7 @@ pub fn solve(input: &Input, part2: bool) -> usize {
 
         // Insert new minpaths into minpaths
         for cpath in candidate_paths {
-            let cstate = cpath.states[cpath.states.len() - 1];
+            let cstate = cpath.last_state.unwrap();
             if let Some(existing_path) = minpaths.get(&cstate) {
                 // Compare if new path has lower cost
                 if existing_path.cost > cpath.cost {
@@ -243,12 +243,10 @@ pub fn solve(input: &Input, part2: bool) -> usize {
     let endstate1 = State::new((xmax - 1, ymax - 1), Direction::South);
     let mut solution = 0;
     if let Some(best_path) = minpaths.get(&endstate0) {
-        //print_map_path(best_path, &map);
         solution = best_path.cost;
     }
 
     if let Some(best_path) = minpaths.get(&endstate1) {
-        //print_map_path(best_path, &map);
         if best_path.cost < solution {
             solution = best_path.cost;
         }
@@ -264,26 +262,6 @@ pub fn part1(input: &Input) -> usize {
 #[aoc(day17, part2)]
 pub fn part2(input: &Input) -> usize {
     solve(input, true)
-}
-
-#[allow(dead_code)]
-fn print_map_path(path: &Path, map: &[Vec<u8>]) {
-    let positions: Vec<_> = path.states.iter().map(|s| s.position).collect();
-    for (y, line) in map.iter().enumerate() {
-        for (x, c) in line.iter().enumerate() {
-            let mut color = false;
-            if positions.contains(&(x, y)) {
-                color = true;
-            }
-            if color {
-                print!("\x1b[91m{}\x1b[0m", c);
-            } else {
-                print!("{}", c);
-            }
-        }
-        println!();
-    }
-    println!();
 }
 
 #[cfg(test)]
