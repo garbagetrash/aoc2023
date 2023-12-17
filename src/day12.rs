@@ -1,5 +1,4 @@
 use rayon::prelude::*;
-use std::collections::HashMap;
 
 type Input = Vec<(String, Vec<usize>)>;
 
@@ -60,7 +59,7 @@ fn _solve(chunks: &[String], arr: &str, path: &[u8]) -> Vec<Vec<u8>> {
     println!("chunks[0]: {:?}", chunks[0]);
     println!("arr:       {:?}", arr);
     */
-    let vpoints = valid_points(&chunks[0], &arr);
+    let vpoints = valid_points(&chunks[0], arr);
     /*
     for vp in &vpoints {
         let mut msg = String::from("            ");
@@ -80,7 +79,7 @@ fn _solve(chunks: &[String], arr: &str, path: &[u8]) -> Vec<Vec<u8>> {
                 let offset = vp + chunks[0].len() as u8 - 1;
                 let mut fwd_path = path.to_vec();
                 fwd_path.push(*vp);
-                let mut arrs = _solve(&chunks[1..], &arr[offset as usize..], &fwd_path);
+                let arrs = _solve(&chunks[1..], &arr[offset as usize..], &fwd_path);
                 let mut intermediate = vec![];
                 for a in arrs {
                     let mut tmp: Vec<u8> = this_path.clone();
@@ -96,7 +95,7 @@ fn _solve(chunks: &[String], arr: &str, path: &[u8]) -> Vec<Vec<u8>> {
         for vp in vpoints {
             output.push(vec![vp]);
         }
-        return output;
+        output
     }
 }
 
@@ -106,7 +105,7 @@ fn create_sequence(chunks: &[String], path: &[u8]) -> String {
     }
     let mut output = String::new();
     for (c, p) in chunks.iter().zip(path.iter()) {
-        for i in 0..*p {
+        for _ in 0..*p {
             output.push('.');
         }
         output.push_str(c);
