@@ -135,52 +135,55 @@ fn add_edges_using_map(g: &mut Graph<(i64, i64, Tile)>, map: &HashMap<(i64, i64)
         match c {
             '|' => {
                 // Vertical
-                add_edge(x, y, &map, g, Direction::North);
-                add_edge(x, y, &map, g, Direction::South);
+                add_edge(x, y, map, g, Direction::North);
+                add_edge(x, y, map, g, Direction::South);
             }
             '-' => {
                 // Horizontal
-                add_edge(x, y, &map, g, Direction::East);
-                add_edge(x, y, &map, g, Direction::West);
+                add_edge(x, y, map, g, Direction::East);
+                add_edge(x, y, map, g, Direction::West);
             }
             'L' => {
                 // 90 deg. bend connecting North and East
                 // above
-                add_edge(x, y, &map, g, Direction::North);
-                add_edge(x, y, &map, g, Direction::East);
+                add_edge(x, y, map, g, Direction::North);
+                add_edge(x, y, map, g, Direction::East);
             }
             'J' => {
                 // 90 deg. bend connecting North and West
                 // above
-                add_edge(x, y, &map, g, Direction::North);
-                add_edge(x, y, &map, g, Direction::West);
+                add_edge(x, y, map, g, Direction::North);
+                add_edge(x, y, map, g, Direction::West);
             }
             '7' => {
                 // 90 deg. bend connecting South and West
                 // above
-                add_edge(x, y, &map, g, Direction::South);
-                add_edge(x, y, &map, g, Direction::West);
+                add_edge(x, y, map, g, Direction::South);
+                add_edge(x, y, map, g, Direction::West);
             }
             'F' => {
                 // 90 deg. bend connecting South and East
                 // above
-                add_edge(x, y, &map, g, Direction::South);
-                add_edge(x, y, &map, g, Direction::East);
+                add_edge(x, y, map, g, Direction::South);
+                add_edge(x, y, map, g, Direction::East);
             }
             '.' => (),
             'S' => {
                 // TODO: Have to figure out what this is somehow
-                add_edge(x, y, &map, g, Direction::North);
-                add_edge(x, y, &map, g, Direction::South);
-                add_edge(x, y, &map, g, Direction::East);
-                add_edge(x, y, &map, g, Direction::West);
+                add_edge(x, y, map, g, Direction::North);
+                add_edge(x, y, map, g, Direction::South);
+                add_edge(x, y, map, g, Direction::East);
+                add_edge(x, y, map, g, Direction::West);
             }
             _ => (),
         };
     }
 }
 
-fn add_edges_using_map_corners(g: &mut Graph<(i64, i64, Tile)>, map: &HashMap<(i64, i64), (char, Uuid)>) {
+fn add_edges_using_map_corners(
+    g: &mut Graph<(i64, i64, Tile)>,
+    map: &HashMap<(i64, i64), (char, Uuid)>,
+) {
     // Add edges
     for (k, v) in map.iter() {
         let &(x, y) = k;
@@ -191,49 +194,49 @@ fn add_edges_using_map_corners(g: &mut Graph<(i64, i64, Tile)>, map: &HashMap<(i
         match c {
             '|' => {
                 // Vertical
-                add_edge_corner(x, y, &map, g, Direction::North);
-                add_edge_corner(x, y, &map, g, Direction::South);
-                add_edge_corner(x, y, &map, g, Direction::West);
+                add_edge_corner(x, y, map, g, Direction::North);
+                add_edge_corner(x, y, map, g, Direction::South);
+                add_edge_corner(x, y, map, g, Direction::West);
             }
             '-' => {
                 // Horizontal
-                add_edge_corner(x, y, &map, g, Direction::North);
-                add_edge_corner(x, y, &map, g, Direction::East);
-                add_edge_corner(x, y, &map, g, Direction::West);
+                add_edge_corner(x, y, map, g, Direction::North);
+                add_edge_corner(x, y, map, g, Direction::East);
+                add_edge_corner(x, y, map, g, Direction::West);
             }
             'L' => {
                 // 90 deg. bend connecting North and East
                 // above
-                add_edge_corner(x, y, &map, g, Direction::North);
-                add_edge_corner(x, y, &map, g, Direction::South);
-                add_edge_corner(x, y, &map, g, Direction::West);
+                add_edge_corner(x, y, map, g, Direction::North);
+                add_edge_corner(x, y, map, g, Direction::South);
+                add_edge_corner(x, y, map, g, Direction::West);
             }
             'J' => {
                 // 90 deg. bend connecting North and West
                 // above
-                add_edge_corner(x, y, &map, g, Direction::North);
-                add_edge_corner(x, y, &map, g, Direction::West);
+                add_edge_corner(x, y, map, g, Direction::North);
+                add_edge_corner(x, y, map, g, Direction::West);
             }
             '7' => {
                 // 90 deg. bend connecting South and West
                 // above
-                add_edge_corner(x, y, &map, g, Direction::North);
-                add_edge_corner(x, y, &map, g, Direction::West);
-                add_edge_corner(x, y, &map, g, Direction::East);
+                add_edge_corner(x, y, map, g, Direction::North);
+                add_edge_corner(x, y, map, g, Direction::West);
+                add_edge_corner(x, y, map, g, Direction::East);
             }
             'F' => {
                 // 90 deg. bend connecting South and East
                 // above
-                add_edge_corner(x, y, &map, g, Direction::North);
-                add_edge_corner(x, y, &map, g, Direction::South);
-                add_edge_corner(x, y, &map, g, Direction::West);
-                add_edge_corner(x, y, &map, g, Direction::East);
+                add_edge_corner(x, y, map, g, Direction::North);
+                add_edge_corner(x, y, map, g, Direction::South);
+                add_edge_corner(x, y, map, g, Direction::West);
+                add_edge_corner(x, y, map, g, Direction::East);
             }
             '.' => {
-                add_edge_corner(x, y, &map, g, Direction::North);
-                add_edge_corner(x, y, &map, g, Direction::South);
-                add_edge_corner(x, y, &map, g, Direction::East);
-                add_edge_corner(x, y, &map, g, Direction::West);
+                add_edge_corner(x, y, map, g, Direction::North);
+                add_edge_corner(x, y, map, g, Direction::South);
+                add_edge_corner(x, y, map, g, Direction::East);
+                add_edge_corner(x, y, map, g, Direction::West);
             }
             'S' => {
                 // TODO: Have to figure out what this is somehow
@@ -301,7 +304,7 @@ pub fn part1(input: &Input) -> i64 {
         dist += 1;
 
         // Move old `frontier` into `explored`
-        explored = explored.into_iter().chain(frontier.into_iter()).collect();
+        explored = explored.into_iter().chain(frontier).collect();
 
         // Set `new_frontier` to `frontier` for next iteration
         frontier = new_frontier.clone();
@@ -328,8 +331,8 @@ fn char_to_tile(c: char) -> Tile {
 // ..............
 // . Input Here .
 // ..............
-fn extended_input(input: &Input, part2: bool) -> Input {
-    let (map, graph) = input;
+fn extended_input(input: &Input, maybe_main_loop: Option<Vec<(i64, i64)>>) -> Input {
+    let (map, _) = input;
 
     let xmax = *map.keys().map(|(x, _)| x).max().unwrap();
     let ymax = *map.keys().map(|(_, y)| y).max().unwrap();
@@ -337,8 +340,19 @@ fn extended_input(input: &Input, part2: bool) -> Input {
     let mut newmap = HashMap::new();
     let mut newgraph = Graph::<(i64, i64, Tile)>::new();
     for (k, v) in map {
-        let node = newgraph.add_node_with_value((k.0 + 1, k.1 + 1, char_to_tile(v.0)));
-        newmap.insert((k.0 + 1, k.1 + 1), (v.0, node));
+        if let Some(main_loop) = maybe_main_loop.clone() {
+            if main_loop.contains(&(k.0 + 1, k.1 + 1)) {
+                let node = newgraph.add_node_with_value((k.0 + 1, k.1 + 1, char_to_tile(v.0)));
+                newmap.insert((k.0 + 1, k.1 + 1), (v.0, node));
+            } else {
+                // If not part of the main_loop just replace it with '.'
+                let node = newgraph.add_node_with_value((k.0 + 1, k.1 + 1, Tile::G));
+                newmap.insert((k.0 + 1, k.1 + 1), ('.', node));
+            }
+        } else {
+            let node = newgraph.add_node_with_value((k.0 + 1, k.1 + 1, char_to_tile(v.0)));
+            newmap.insert((k.0 + 1, k.1 + 1), (v.0, node));
+        }
     }
 
     // Northern edge
@@ -366,100 +380,21 @@ fn extended_input(input: &Input, part2: bool) -> Input {
     }
 
     // Add back in the edges
-    if part2 {
+    if maybe_main_loop.is_some() {
         add_edges_using_map_corners(&mut newgraph, &newmap);
     } else {
         add_edges_using_map(&mut newgraph, &newmap);
     }
-
     (newmap, newgraph)
-}
-
-fn add_nonloop_edges(graph: &mut Graph<(i64, i64, Tile)>, nonloop_ids: &[Uuid]) {
-    let mainloop_ids: Vec<_> = graph
-        .nodes
-        .iter()
-        .filter(|n| !nonloop_ids.contains(&n.id))
-        .map(|n| n.id)
-        .collect();
-    let xmax = graph.nodes.iter().map(|n| n.value.0).max().unwrap();
-    let ymax = graph.nodes.iter().map(|n| n.value.1).max().unwrap();
-    let dirs = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
-    for x in 0..xmax + 1 {
-        for y in 0..ymax + 1 {
-            //add_nonloop_edge();
-            let node1 = graph
-                .nodes
-                .iter()
-                .find(|n| n.value.0 == x && n.value.1 == y)
-                .cloned()
-                .unwrap();
-            if nonloop_ids.contains(&node1.id) {
-                for dir in &dirs {
-                    let xx = x as i64 + dir.0;
-                    let yy = y as i64 + dir.1;
-                    if xx >= 0 && yy >= 0 {
-                        if let Some(node2) = graph
-                            .nodes
-                            .iter()
-                            .find(|n| n.value.0 == xx as i64 && n.value.1 == yy as i64)
-                        {
-                            if nonloop_ids.contains(&node2.id) {
-                                graph.add_edge(node1.id, node2.id);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-fn waterfill(node1: Uuid, graph: &Graph<(i64, i64, Tile)>) -> Vec<Uuid> {
-    let mut frontier: HashSet<Uuid> = graph.get_node_neighbors(node1);
-    let mut explored: HashSet<Uuid> = HashSet::new();
-    loop {
-        //println!("frontier.len(): {}", frontier.len());
-        if frontier.is_empty() {
-            break;
-        }
-        let mut new_frontier = HashSet::new();
-        for id in &frontier {
-            // Search neighbors of this frontier node for _new_ frontier
-            for nid in &graph.get_node_neighbors(*id) {
-                if !explored.contains(nid) && !frontier.contains(nid) {
-                    // If `nid` not in `explored` or current `frontier` then it is a hit
-                    new_frontier.insert(*nid);
-                }
-            }
-        }
-
-        // Move old `frontier` into `explored`
-        explored = explored.into_iter().chain(frontier.into_iter()).collect();
-
-        // Set `new_frontier` to `frontier` for next iteration
-        frontier = new_frontier.clone();
-    }
-    explored.into_iter().collect()
-}
-
-fn replace_nonloop(nonloop_ids: &[Uuid], graph: &mut Graph<(i64, i64, Tile)>) {
-    for id in nonloop_ids {
-        if let Some(node) = graph.get_node_from_id_mut(*id) {
-            node.value.2 = Tile::G;
-        }
-    }
 }
 
 // Instead of graph of centers, what about graph of corners?
 #[aoc(day10, part2)]
-// 860 is too high
 pub fn part2(input: &Input) -> i64 {
-
     // Solve part 1 to get the loop...
-    let mut main_loop = vec![];
+    let main_loop: Vec<_>;
     {
-        let (map, mut graph) = extended_input(input, false);
+        let (_, graph) = extended_input(input, None);
         let start = graph.nodes.iter().find(|n| n.value.2 == Tile::S).unwrap();
 
         let mut frontier: HashSet<Uuid> = graph.get_node_neighbors(start.id);
@@ -486,31 +421,43 @@ pub fn part2(input: &Input) -> i64 {
             dist += 1;
 
             // Move old `frontier` into `explored`
-            explored = explored.into_iter().chain(frontier.into_iter()).collect();
+            explored = explored.into_iter().chain(frontier).collect();
 
             // Set `new_frontier` to `frontier` for next iteration
             frontier = new_frontier.clone();
         }
         // Verify part 1 still good
-        main_loop = explored.iter().map(|u| {
-            let node = graph.get_node_from_id(*u).unwrap();
-            (node.value.0, node.value.1)
-        }).collect();
+        main_loop = explored
+            .iter()
+            .map(|u| {
+                let node = graph.get_node_from_id(*u).unwrap();
+                (node.value.0, node.value.1)
+            })
+            .collect();
+        /*
         println!("Main Loop:");
         print_map_board(&main_loop, &map);
         println!();
+        */
     }
 
     // Lets extend the border by 1 in all directions with '.', then start a water filling from
     // (0, 0)
-    let (map, mut graph) = extended_input(input, true);
+    let (map, graph) = extended_input(input, Some(main_loop.clone()));
+    /*
+    println!("Extended Input:");
     print_board(&map);
     println!();
-    let start = graph.nodes.iter().find(|n| n.value.0 == 0 && n.value.1 == 0).unwrap();
+    */
+    let start = graph
+        .nodes
+        .iter()
+        .find(|n| n.value.0 == 0 && n.value.1 == 0)
+        .unwrap();
 
     //println!("graph: {:?}", graph.edges);
     let mut frontier: HashSet<Uuid> = graph.get_node_neighbors(start.id);
-    println!("start neighbors: {:?}", frontier);
+    //println!("start neighbors: {:?}", frontier);
     let mut explored: HashSet<Uuid> = HashSet::new();
     loop {
         //println!("frontier.len(): {}", frontier.len());
@@ -529,44 +476,55 @@ pub fn part2(input: &Input) -> i64 {
         }
 
         // Move old `frontier` into `explored`
-        explored = explored.into_iter().chain(frontier.into_iter()).collect();
+        explored = explored.into_iter().chain(frontier).collect();
 
         // Set `new_frontier` to `frontier` for next iteration
         frontier = new_frontier.clone();
-
-        let asdf: Vec<_> = explored.iter().map(|u| {
-            let node = graph.get_node_from_id(*u).unwrap();
-            (node.value.0, node.value.1)
-        }).collect();
+        /*
         {
+            let asdf: Vec<_> = explored
+                .iter()
+                .map(|u| {
+                    let node = graph.get_node_from_id(*u).unwrap();
+                    (node.value.0, node.value.1)
+                })
+                .collect();
             // DEBUG
             println!("Exterior Map:");
             print_map_board(&asdf, &map);
             println!();
         }
+        */
     }
 
-    let asdf: Vec<_> = explored.iter().map(|u| {
-        let node = graph.get_node_from_id(*u).unwrap();
-        (node.value.0, node.value.1)
-    }).collect();
+    let asdf: Vec<_> = explored
+        .iter()
+        .map(|u| {
+            let node = graph.get_node_from_id(*u).unwrap();
+            (node.value.0, node.value.1)
+        })
+        .collect();
+    /*
     {
         // DEBUG
         println!("Exterior Map:");
         print_map_board(&asdf, &map);
         println!();
     }
+    */
 
     let main_loop: HashSet<(i64, i64)> = main_loop.into_iter().collect();
     let exterior: HashSet<(i64, i64)> = asdf.into_iter().collect();
 
     let answer_complement: Vec<_> = main_loop.union(&exterior).copied().collect();
+    /*
     {
         // DEBUG
         println!("Union Map:");
         print_map_board(&answer_complement, &map);
         println!();
     }
+    */
 
     let xmax = map.keys().map(|(x, _)| x).max().unwrap();
     let ymax = map.keys().map(|(_, y)| y).max().unwrap();
@@ -587,7 +545,6 @@ fn print_map_board(map: &[(i64, i64)], tilemap: &HashMap<(i64, i64), (char, Uuid
             let (cc, _) = tilemap.get(&(x, y)).unwrap();
             if color {
                 print!("\x1b[91m{}\x1b[0m", *cc);
-
             } else {
                 print!("{}", *cc);
             }

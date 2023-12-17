@@ -1,8 +1,5 @@
 use rayon::prelude::*;
 use std::collections::HashSet;
-use std::thread;
-use std::time;
-use std::time::Duration;
 
 pub type Input = Vec<Vec<char>>;
 
@@ -10,7 +7,7 @@ pub type Input = Vec<Vec<char>>;
 pub fn load_input(input: &str) -> Input {
     let mut output = vec![];
     for line in input.lines() {
-        let mut temp: Vec<_> = line.chars().collect();
+        let temp: Vec<_> = line.chars().collect();
         output.push(temp);
     }
     output
@@ -123,9 +120,7 @@ impl LightState {
         }
 
         // Are we still in bounds?
-        if next_pos.0 >= xmax || next_pos.0 < 0 {
-            (false, new_state)
-        } else if next_pos.1 >= ymax || next_pos.1 < 0 {
+        if next_pos.0 >= xmax || next_pos.0 < 0 || next_pos.1 >= ymax || next_pos.1 < 0 {
             (false, new_state)
         } else {
             self.position = next_pos;
@@ -149,7 +144,7 @@ pub fn simulate(starter: LightState, input: &Input) -> usize {
     created_lights.insert(starter_state);
 
     loop {
-        if lights.len() == 0 {
+        if lights.is_empty() {
             // Done
             break;
         }
@@ -157,8 +152,8 @@ pub fn simulate(starter: LightState, input: &Input) -> usize {
         // Take 1 step
         let mut new_lights = vec![];
         let mut done_lights = vec![];
-        for (mut i, mut light) in lights.iter_mut().enumerate() {
-            let (valid, maybe_new_light) = light.step(&mut energized, &input);
+        for (i, light) in lights.iter_mut().enumerate() {
+            let (valid, maybe_new_light) = light.step(&mut energized, input);
             if let Some(new_light) = maybe_new_light {
                 let new_state = new_light.get_state();
                 if !created_lights.contains(&new_state) {
@@ -186,7 +181,7 @@ pub fn simulate(starter: LightState, input: &Input) -> usize {
 
 #[aoc(day16, part1)]
 pub fn part1(input: &Input) -> usize {
-    let mut starter = LightState::new((0, 0), Direction::East);
+    let starter = LightState::new((0, 0), Direction::East);
     simulate(starter, input)
 }
 
@@ -210,6 +205,7 @@ pub fn part2(input: &Input) -> usize {
         .unwrap()
 }
 
+#[allow(dead_code)]
 fn print_map(position: (i64, i64), input: &Input) {
     for (y, line) in input.iter().enumerate() {
         for (x, c) in line.iter().enumerate() {
