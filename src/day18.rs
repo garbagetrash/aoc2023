@@ -1,15 +1,20 @@
 use rayon::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub type Input = Vec<(char, usize, String)>;
+
+pub enum Direction {
+    North,
+    East,
+    South,
+    West,
+}
 
 #[aoc_generator(day18)]
 pub fn load_input(input: &str) -> Input {
     let mut output = vec![];
     for line in input.lines() {
-        let temp: Vec<_> = line
-            .split(' ')
-            .collect();
+        let temp: Vec<_> = line.split(' ').collect();
         let dir = temp[0].chars().next().unwrap();
         let len = temp[1].parse::<usize>().unwrap();
         let hash = temp[2].to_string();
@@ -29,25 +34,25 @@ pub fn create_trench(input: &Input) -> HashMap<(i64, i64), char> {
                     pos.1 -= 1;
                     map.insert(pos, '#');
                 }
-            },
+            }
             'R' => {
                 for _ in 0..*len {
                     pos.0 += 1;
                     map.insert(pos, '#');
                 }
-            },
+            }
             'D' => {
                 for _ in 0..*len {
                     pos.1 += 1;
                     map.insert(pos, '#');
                 }
-            },
+            }
             'L' => {
                 for _ in 0..*len {
                     pos.0 -= 1;
                     map.insert(pos, '#');
                 }
-           },
+            }
             _ => (),
         }
     }
@@ -62,8 +67,13 @@ pub fn fill_trench(map: &mut HashMap<(i64, i64), char>) {
 
     for x in xmin..xmax + 1 {
         let mut toggle = 0;
+        let mut last = (x, ymin - 1);
+        let mut lastlast = (x, ymin - 2);
         for y in ymin..ymax + 1 {
-            if map.get(&(x, y)).is_some() {
+            if map.get(&(x, y)).is_none()
+                && map.get(&last).is_some()
+                && map.get(&lastlast).is_none()
+            {
                 toggle ^= 1;
             }
             if toggle == 1 {
@@ -73,11 +83,56 @@ pub fn fill_trench(map: &mut HashMap<(i64, i64), char>) {
     }
 }
 
+pub fn get_neighbors(pos: (i64, i64)) -> Vec<(i64, i64)> {
+    let (x, y) = pos;
+    vec![(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+}
+
+pub fn waterfill(start: (i64, i64), map: &mut HashMap<(i64, i64), char>) {
+    let mut frontier = get_neighbors(start);
+    loop {
+        //print_map(&map);
+        //println!();
+        if frontier.is_empty() {
+            break;
+        } else {
+            println!("frontier.len(): {}", frontier.len());
+        }
+        let mut new_frontier = HashSet::new();
+        for pos in &frontier {
+            if !map.contains_key(&pos) {
+                // Don't explore something we've explored before
+                let neighbors = get_neighbors(*pos);
+                let neighbors: Vec<_> = neighbors
+                    .into_iter()
+                    .filter(|n| !map.contains_key(n))
+                    .collect();
+                for n in neighbors {
+                    if !map.contains_key(&n) && !frontier.contains(&n) {
+                        // If truly new, add to frontier
+                        new_frontier.insert(n);
+                    }
+                }
+                map.insert(*pos, '#');
+            }
+        }
+
+        frontier = new_frontier.into_iter().collect();
+    }
+}
+
 #[aoc(day18, part1)]
 pub fn part1(input: &Input) -> usize {
-    let map = create_trench(input);
+    let mut map = create_trench(input);
+    //fill_trench(&mut map);
+    waterfill((1, 1), &mut map);
     print_map(&map);
     map.iter().count()
+}
+
+pub fn parse_hex(input: &Input) -> Vec<(Direction, usize)> {
+    for (_, _, inst) in input {}
+    vec![]
 }
 
 #[aoc(day18, part2)]
