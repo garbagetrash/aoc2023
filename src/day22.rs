@@ -1,4 +1,5 @@
-use std::collections::{HashMap, HashSet};
+use rayon::prelude::*;
+use std::collections::HashSet;
 
 pub type Input = Vec<Brick>;
 
@@ -20,21 +21,27 @@ impl Brick {
             } else {
                 (self.side2.0, self.side1.0)
             };
-            (minx..maxx).map(|x| (x, self.side1.1, self.side1.2)).collect()
+            (minx..maxx + 1)
+                .map(|x| (x, self.side1.1, self.side1.2))
+                .collect()
         } else if self.side1.1 != self.side2.1 {
             let (miny, maxy) = if self.side1.1 < self.side2.1 {
                 (self.side1.1, self.side2.1)
             } else {
                 (self.side2.1, self.side1.1)
             };
-            (miny..maxy).map(|y| (self.side1.0, y, self.side1.2)).collect()
+            (miny..maxy + 1)
+                .map(|y| (self.side1.0, y, self.side1.2))
+                .collect()
         } else if self.side1.2 != self.side2.2 {
             let (minz, maxz) = if self.side1.2 < self.side2.2 {
                 (self.side1.2, self.side2.2)
             } else {
                 (self.side2.2, self.side1.2)
             };
-            (minz..maxz).map(|z| (self.side1.0, self.side1.1, z)).collect()
+            (minz..maxz + 1)
+                .map(|z| (self.side1.0, self.side1.1, z))
+                .collect()
         } else {
             vec![self.side1]
         }
@@ -42,7 +49,31 @@ impl Brick {
 
     pub fn points_below(&self) -> Option<Vec<(i64, i64, i64)>> {
         let points = self.points();
-        let output: Vec<(i64, i64, i64)> = points.iter().copied().map(|(x, y, z)| (x, y, z - 1)).collect();
+        let output: Vec<(i64, i64, i64)> = points
+            .iter()
+            .copied()
+            .map(|(x, y, z)| (x, y, z - 1))
+            .collect();
+        if output.iter().map(|(_, _, z)| z).any(|&z| z < 1) {
+            None
+        } else {
+            Some(output)
+        }
+    }
+
+    pub fn drop_points_below(&self) -> Option<Vec<(i64, i64, i64)>> {
+        let points = self.points();
+        let output: Vec<(i64, i64, i64)> = if self.side1.2 == self.side2.2 {
+            points
+                .iter()
+                .copied()
+                .map(|(x, y, z)| (x, y, z - 1))
+                .collect()
+        } else {
+            // Vertically oriented block
+            let z = points.iter().map(|(_, _, z)| z).min().unwrap();
+            vec![(self.side1.0, self.side1.1, *z - 1)]
+        };
         if output.iter().map(|(_, _, z)| z).any(|&z| z < 1) {
             None
         } else {
@@ -61,9 +92,19 @@ pub fn load_input(input: &str) -> Input {
     let mut bricks = vec![];
     for line in input.lines() {
         let mut temp = line.split('~');
-        let dim1: Vec<i64> = temp.next().unwrap().split(',').map(|c| c.parse::<i64>().unwrap()).collect();
+        let dim1: Vec<i64> = temp
+            .next()
+            .unwrap()
+            .split(',')
+            .map(|c| c.parse::<i64>().unwrap())
+            .collect();
         let dim1 = (dim1[0], dim1[1], dim1[2]);
-        let dim2: Vec<i64> = temp.next().unwrap().split(',').map(|c| c.parse::<i64>().unwrap()).collect();
+        let dim2: Vec<i64> = temp
+            .next()
+            .unwrap()
+            .split(',')
+            .map(|c| c.parse::<i64>().unwrap())
+            .collect();
         let dim2 = (dim2[0], dim2[1], dim2[2]);
         bricks.push(Brick::new(dim1, dim2));
     }
@@ -72,7 +113,8 @@ pub fn load_input(input: &str) -> Input {
 
 #[allow(dead_code)]
 fn print_map_level(bricks: &[Brick], z: i64) {
-    let pts_occupied: HashSet<(i64, i64, i64)> = bricks.iter().flat_map(|brick| brick.points()).collect();
+    let pts_occupied: HashSet<(i64, i64, i64)> =
+        bricks.iter().flat_map(|brick| brick.points()).collect();
     let xmax = 10;
     let ymax = 10;
     for y in 0..ymax {
@@ -87,12 +129,13 @@ fn print_map_level(bricks: &[Brick], z: i64) {
     }
 }
 
-pub fn fall(bricks: &mut Vec<Brick>) {
+pub fn fall(bricks: &mut [Brick]) {
     loop {
-        let pts_occupied: HashSet<(i64, i64, i64)> = bricks.iter().flat_map(|brick| brick.points()).collect();
+        let pts_occupied: HashSet<(i64, i64, i64)> =
+            bricks.iter().flat_map(|brick| brick.points()).collect();
         let mut idxs = vec![];
         for (i, brick) in bricks.iter().enumerate() {
-            if let Some(pts_below) = brick.points_below() {
+            if let Some(pts_below) = brick.drop_points_below() {
                 if !pts_below.iter().any(|p| pts_occupied.contains(p)) {
                     // If all points below are unoccupied, then we can move this brick down by 1
                     idxs.push(i);
@@ -100,7 +143,7 @@ pub fn fall(bricks: &mut Vec<Brick>) {
             }
         }
 
-        if idxs.len() == 0 {
+        if idxs.is_empty() {
             // Done dropping all bricks
             break;
         }
@@ -117,10 +160,13 @@ pub fn bricks_below(brick: Brick, bricks: &[Brick]) -> Vec<Brick> {
     let mut output = vec![];
     if let Some(pts_below) = brick.points_below() {
         for brick2 in bricks {
-            for pt in brick2.points() {
-                if pts_below.contains(&pt) {
-                    // brick2 is below brick
-                    output.push(*brick2);
+            if *brick2 != brick {
+                for pt in brick2.points() {
+                    if pts_below.contains(&pt) {
+                        // brick2 is below brick
+                        output.push(*brick2);
+                        break;
+                    }
                 }
             }
         }
@@ -135,14 +181,7 @@ pub fn part1(input: &Input) -> usize {
     // First let all the bricks fall to resting position
     fall(&mut bricks);
 
-    for z in 0..10 {
-        println!("z = {}", z);
-        print_map_level(&bricks, z as i64);
-        println!();
-    }
-
-    // TODO: Next, determine which bricks rest on other bricks, and if a brick can be removed
-    // safely.
+    // Next, determine which bricks rest on other bricks, and if a brick can be removed safely.
     let all: HashSet<Brick> = bricks.iter().copied().collect();
     let mut necessary: HashSet<Brick> = HashSet::new();
     for brick in &bricks {
@@ -154,15 +193,68 @@ pub fn part1(input: &Input) -> usize {
     all.difference(&necessary).collect::<Vec<_>>().len()
 }
 
+pub fn simulate(_bricks: &[Brick]) -> i64 {
+    let mut bricks = _bricks.to_owned();
+    let mut brick_idxs: HashSet<usize> = HashSet::new();
+
+    // First let all the bricks fall to resting position
+    loop {
+        let pts_occupied: HashSet<(i64, i64, i64)> =
+            bricks.iter().flat_map(|brick| brick.points()).collect();
+        let mut idxs = vec![];
+        for (i, brick) in bricks.iter().enumerate() {
+            if let Some(pts_below) = brick.drop_points_below() {
+                if !pts_below.iter().any(|p| pts_occupied.contains(p)) {
+                    // If all points below are unoccupied, then we can move this brick down by 1
+                    idxs.push(i);
+                    brick_idxs.insert(i);
+                }
+            }
+        }
+
+        if idxs.is_empty() {
+            // Done dropping all bricks
+            break;
+        }
+
+        idxs.sort();
+
+        for i in idxs.iter().rev() {
+            bricks[*i].drop_one();
+        }
+    }
+    brick_idxs.len() as i64
+}
+
 #[aoc(day22, part2)]
 pub fn part2(input: &Input) -> i64 {
-    0
+    let mut bricks = input.clone();
+    // First let all the bricks fall to resting position
+    fall(&mut bricks);
+
+    // Next, determine which bricks rest on other bricks, and if a brick can be removed safely.
+    bricks
+        .par_iter()
+        .map(|brick| {
+            let bricks_less_brick: Vec<Brick> =
+                bricks.iter().filter(|&b| b != brick).copied().collect();
+            simulate(&bricks_less_brick)
+        })
+        .sum()
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
     use std::fs::read_to_string;
+
+    #[test]
+    fn points() {
+        let brick = Brick::new((0, 0, 1), (0, 0, 10));
+
+        let pts = brick.points();
+        assert_eq!(pts.len(), 10);
+    }
 
     #[test]
     fn test_part1() {
@@ -175,6 +267,6 @@ mod test {
     fn test_part2() {
         let input = read_to_string("input/2023/22a.txt").unwrap();
         let input = load_input(&input);
-        assert_eq!(part2(&input), 50);
+        assert_eq!(part2(&input), 7);
     }
 }
