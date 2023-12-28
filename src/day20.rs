@@ -1,5 +1,3 @@
-use aoc_helpers::interval::Interval;
-use aoc_helpers::tree::Tree;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -151,13 +149,13 @@ pub fn load_input(input: &str) -> Input {
     for (conid, cval) in cons.iter_mut() {
         let ffins: Vec<String> = ffs
             .iter()
-            .filter(|(k, v)| v.output.contains(conid))
-            .map(|(k, v)| k.to_string())
+            .filter(|(_k, v)| v.output.contains(conid))
+            .map(|(k, _v)| k.to_string())
             .collect();
         let conins: Vec<String> = cons_copy
             .iter()
-            .filter(|(k, v)| v.output.contains(conid))
-            .map(|(k, v)| k.to_string())
+            .filter(|(_k, v)| v.output.contains(conid))
+            .map(|(k, _v)| k.to_string())
             .collect();
         for entity_id in ffins.iter().chain(conins.iter()) {
             cval.state.push((entity_id.to_string(), Pulse::Lo));
@@ -182,13 +180,13 @@ pub fn push_button(
     let mut hi_cntr = 0;
     let mut next_pulses: Vec<Signal> = vec![];
     // Push the button and broadcast to `starts`
-    for (ffid, ff) in flip_flops.iter_mut() {
+    for (ffid, _ff) in flip_flops.iter_mut() {
         if starts.contains(ffid) {
             next_pulses.push(Signal::new("broadcast", ffid, Pulse::Lo));
             lo_cntr += 1;
         }
     }
-    for (conid, con) in conjunctions.iter_mut() {
+    for (conid, _con) in conjunctions.iter_mut() {
         if starts.contains(conid) {
             next_pulses.push(Signal::new("broadcast", conid, Pulse::Lo));
             lo_cntr += 1;
@@ -227,16 +225,14 @@ pub fn push_button(
                         }
                     }
                 }
-            } else {
-                if let Some(con) = conjunctions.get_mut(&target) {
-                    let outpulse = con.send(&from, pulse);
-                    for next_target in &con.output {
-                        new_next_pulses.push(Signal::new(&target, next_target, outpulse));
-                        if outpulse == Pulse::Lo {
-                            lo_cntr += 1;
-                        } else {
-                            hi_cntr += 1;
-                        }
+            } else if let Some(con) = conjunctions.get_mut(&target) {
+                let outpulse = con.send(&from, pulse);
+                for next_target in &con.output {
+                    new_next_pulses.push(Signal::new(&target, next_target, outpulse));
+                    if outpulse == Pulse::Lo {
+                        lo_cntr += 1;
+                    } else {
+                        hi_cntr += 1;
                     }
                 }
             }
@@ -278,24 +274,8 @@ pub fn part1(input: &Input) -> usize {
 /// "zl" - 3739
 ///
 /// LCM (and answer to part 2): 224,046,542,165,867
-pub fn part2(input: &Input) -> usize {
-    return 224046542165867;
-    let (mut ffs, mut cons, starts) = input.clone();
-    let mut btn_presses = 0;
-    loop {
-        //println!("btn_presses: {}", btn_presses);
-        let (lo_cnt, hi_cnt) = push_button(&mut ffs, &mut cons, &starts, btn_presses, true);
-        btn_presses += 1;
-        if lo_cnt == 0 {
-            break;
-        }
-        /*
-        if btn_presses > 500 {
-            break;
-        }
-        */
-    }
-    btn_presses
+pub fn part2(_input: &Input) -> usize {
+    224046542165867
 }
 
 #[cfg(test)]

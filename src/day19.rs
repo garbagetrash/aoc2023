@@ -74,37 +74,35 @@ pub fn load_input(input: &str) -> Input {
             let a = temp[5].parse::<usize>().unwrap();
             let s = temp[7].trim_end_matches('}').parse::<usize>().unwrap();
             items.push(Item { x, m, a, s });
+        } else if line.is_empty() {
+            // Now switch to parts
+            parts = true;
         } else {
-            if line.is_empty() {
-                // Now switch to parts
-                parts = true;
-            } else {
-                // Parse the Rules
-                let temp = line.split('{').collect::<Vec<_>>();
-                let name = temp[0].to_string();
-                let linerules = temp[1].split(',').collect::<Vec<_>>();
-                let mut _rules = vec![];
-                for rule in linerules {
-                    let temp2 = rule.split(':').collect::<Vec<_>>();
-                    if temp2.len() > 1 {
-                        let goto = temp2[1];
-                        let mut rule_type = RuleType::GreaterThan;
-                        if temp2[0].find('<').is_some() {
-                            // Less than rule
-                            rule_type = RuleType::LessThan;
-                        }
-                        let temp3 = temp2[0].split(['<', '>']).collect::<Vec<_>>();
-                        let check = Some(temp3[0].to_string());
-                        let value = Some(temp3[1].parse::<usize>().unwrap());
-                        _rules.push(Rule::new(check, rule_type, value, goto));
-                    } else {
-                        // Length 1 rule is just a goto
-                        let goto = temp2[0].trim_end_matches('}');
-                        _rules.push(Rule::new(None, RuleType::GoTo, None, goto));
+            // Parse the Rules
+            let temp = line.split('{').collect::<Vec<_>>();
+            let name = temp[0].to_string();
+            let linerules = temp[1].split(',').collect::<Vec<_>>();
+            let mut _rules = vec![];
+            for rule in linerules {
+                let temp2 = rule.split(':').collect::<Vec<_>>();
+                if temp2.len() > 1 {
+                    let goto = temp2[1];
+                    let mut rule_type = RuleType::GreaterThan;
+                    if temp2[0].find('<').is_some() {
+                        // Less than rule
+                        rule_type = RuleType::LessThan;
                     }
+                    let temp3 = temp2[0].split(['<', '>']).collect::<Vec<_>>();
+                    let check = Some(temp3[0].to_string());
+                    let value = Some(temp3[1].parse::<usize>().unwrap());
+                    _rules.push(Rule::new(check, rule_type, value, goto));
+                } else {
+                    // Length 1 rule is just a goto
+                    let goto = temp2[0].trim_end_matches('}');
+                    _rules.push(Rule::new(None, RuleType::GoTo, None, goto));
                 }
-                rules.insert(name, _rules);
             }
+            rules.insert(name, _rules);
         }
     }
     (rules, items)

@@ -1,6 +1,4 @@
-use aoc_helpers::tree::Tree;
-use std::collections::{HashMap, HashSet};
-use std::fmt;
+use std::collections::HashMap;
 
 pub type Input = HashMap<(i64, i64), char>;
 
@@ -14,11 +12,7 @@ pub enum Direction {
 
 pub fn check_position_free(pos: (i64, i64), map: &HashMap<(i64, i64), char>) -> bool {
     if let Some(n) = map.get(&pos) {
-        if *n == '.' || *n == 'S' {
-            true
-        } else {
-            false
-        }
+        *n == '.' || *n == 'S'
     } else {
         false
     }
@@ -52,7 +46,7 @@ pub fn load_input(input: &str) -> Input {
 }
 
 pub fn solve_part1(input: &Input, nsteps: usize) -> usize {
-    let mut map = input.clone();
+    let map = input.clone();
 
     // Create a neighbors cache
     let mut neighbors_cache: HashMap<(i64, i64), Vec<(i64, i64)>> = HashMap::new();
@@ -62,7 +56,6 @@ pub fn solve_part1(input: &Input, nsteps: usize) -> usize {
         }
     }
 
-    let mut counter = 0;
     let start_position = map
         .iter()
         .filter(|(_k, &v)| v == 'S')
@@ -76,9 +69,8 @@ pub fn solve_part1(input: &Input, nsteps: usize) -> usize {
         if i % 2 == 0 {
             // Even positions
             for pos in &even_positions {
-                let neighbors = neighbors_cache.get(&pos).unwrap();
+                let neighbors = neighbors_cache.get(pos).unwrap();
                 for n in neighbors {
-                    //if !even_positions.contains(n) && !odd_positions.contains(n) {
                     if !odd_positions.contains(n) {
                         odd_positions.push(*n);
                     }
@@ -87,9 +79,8 @@ pub fn solve_part1(input: &Input, nsteps: usize) -> usize {
         } else {
             // Odd positions
             for pos in &odd_positions {
-                let neighbors = neighbors_cache.get(&pos).unwrap();
+                let neighbors = neighbors_cache.get(pos).unwrap();
                 for n in neighbors {
-                    //if !even_positions.contains(n) && !odd_positions.contains(n) {
                     if !even_positions.contains(n) {
                         even_positions.push(*n);
                     }
@@ -134,7 +125,7 @@ pub fn part2(input: &Input) -> i64 {
 }
 
 pub fn simulate(input: &Input, nsteps: usize, start_position: (i64, i64)) -> Vec<(i64, i64)> {
-    let mut map = input.clone();
+    let map = input.clone();
 
     // Create a neighbors cache
     let mut neighbors_cache: HashMap<(i64, i64), Vec<(i64, i64)>> = HashMap::new();
@@ -144,7 +135,6 @@ pub fn simulate(input: &Input, nsteps: usize, start_position: (i64, i64)) -> Vec
         }
     }
 
-    let mut counter = 0;
     let mut even_positions: Vec<(i64, i64)> = vec![start_position];
     let mut odd_positions: Vec<(i64, i64)> = vec![];
     for i in 0..nsteps {
@@ -153,7 +143,7 @@ pub fn simulate(input: &Input, nsteps: usize, start_position: (i64, i64)) -> Vec
         if i % 2 == 0 {
             // Even positions
             for pos in &even_positions {
-                let neighbors = neighbors_cache.get(&pos).unwrap();
+                let neighbors = neighbors_cache.get(pos).unwrap();
                 for n in neighbors {
                     //if !even_positions.contains(n) && !odd_positions.contains(n) {
                     if !odd_positions.contains(n) {
@@ -164,7 +154,7 @@ pub fn simulate(input: &Input, nsteps: usize, start_position: (i64, i64)) -> Vec
         } else {
             // Odd positions
             for pos in &odd_positions {
-                let neighbors = neighbors_cache.get(&pos).unwrap();
+                let neighbors = neighbors_cache.get(pos).unwrap();
                 for n in neighbors {
                     //if !even_positions.contains(n) && !odd_positions.contains(n) {
                     if !even_positions.contains(n) {
@@ -186,47 +176,18 @@ pub fn solve_part2(input: &Input, nsteps: usize) -> i64 {
     // modulus math but how to determine how many fields to remove in a go? or maybe just be dumb
     // and actually iterate x+y=bignumber? No, do not just iterate.
     let thenum = nsteps as i64;
-    let nmod = thenum % 2;
-    let mut map = input.clone();
-    let start_position = map
-        .iter()
-        .filter(|(_k, &v)| v == 'S')
-        .map(|(k, _)| k)
-        .collect::<Vec<_>>()[0];
+    let map = input.clone();
     let xmax = map.keys().map(|(x, _y)| x).max().unwrap();
-    let ymax = map.keys().map(|(_x, y)| y).max().unwrap();
     let half_field = xmax / 2;
     let field_width = *xmax + 1;
     let n_fields = (thenum - half_field) / field_width;
     let nn = (thenum + 1) / field_width;
     let full_0 = nn.pow(2);
     let full_1 = (nn - 1).pow(2);
-    let num_into = (thenum - half_field) % field_width;
-
-    /*
-    println!("thenum: {}", thenum);
-    println!("nmod: {}", nmod);
-    println!("xmax: {}", xmax);
-    println!("ymax: {}", ymax);
-    println!("half_field: {}", half_field);
-    println!("field_width: {}", field_width);
-    println!("n_fields: {}", n_fields);
-    println!("nn: {}", nn);
-    println!("full_0: {}", full_0);
-    println!("full_1: {}", full_1);
-    println!("num_into: {}", num_into);
-    */
 
     // NOTE: field_mod is going to indicated whether the center of a given field is "on" or not.
     // The starting field has a field_mod = # steps % 2. field_mod of the 4 surrounding fields will
     // be = 1, indicating the center tile is "off".
-    //
-    // tip_mod is going to indicate the field_mod for all the tip blocks.
-    let tip_mod = (((thenum - half_field - 1) / field_width) + 1) % 2;
-    //println!("tip_mod: {}", tip_mod);
-
-    let a_mod = (tip_mod + 1) % 2;
-    //println!("a_mod: {}", a_mod);
 
     // If you do the math you see 26501365 - 65 (half the field width) / 131 (the full field width)
     // yields 202300.0 exactly. The cheeky number is a good indication we're on the right path.
