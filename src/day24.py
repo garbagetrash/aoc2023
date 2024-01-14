@@ -1,5 +1,31 @@
 import sympy as sp
 
+"""
+If we take 3 hailstones then we have 9 eqs and 9 unknowns:
+
+Vxs*t0 + Pxs = Vx0*t0 + Px0 # Hailstone 0 eqs
+Vys*t0 + Pys = Vy0*t0 + Py0
+Vzs*t0 + Pzs = Vz0*t0 + Pz0
+Vxs*t1 + Pxs = Vx1*t1 + Px1 # Hailstone 1 eqs
+Vys*t1 + Pys = Vy1*t1 + Py1
+Vzs*t1 + Pzs = Vz1*t1 + Pz1
+Vxs*t2 + Pxs = Vx2*t2 + Px2 # Hailstone 2 eqs
+Vys*t2 + Pys = Vy2*t2 + Py2
+Vzs*t2 + Pzs = Vz2*t2 + Pz2
+
+Unknowns: {Pxs, Pys, Pzs, Vxs, Vys, Vzs, t0, t1, t2}
+
+A bit of algebra (solving for t1, t2, t3) can reduce this problem to the
+following 6 eqs and 6 unknowns:
+
+(Px0 - Pxs) / (Vxs - Vx0) = (Py0 - Pys) / (Vys - Vy0) = (Pz0 - Pzs) / (Vzs - Vz0)
+(Px1 - Pxs) / (Vxs - Vx1) = (Py1 - Pys) / (Vys - Vy1) = (Pz1 - Pzs) / (Vzs - Vz1)
+(Px2 - Pxs) / (Vxs - Vx2) = (Py2 - Pys) / (Vys - Vy2) = (Pz2 - Pzs) / (Vzs - Vz2)
+
+I thought about doing some kind of clever filtering via the constraint that all
+the t values must be > 0, but gave up on that and just let sympy do the work.
+"""
+
 pxs = sp.symbols('pxs')
 vxs = sp.symbols('vxs')
 pys = sp.symbols('pys')
