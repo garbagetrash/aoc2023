@@ -1,6 +1,5 @@
 use aoc_helpers::tree::Tree;
-use rayon::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub type Input = HashMap<(usize, usize), char>;
 
@@ -74,18 +73,13 @@ pub fn get_neighbors(point: (usize, usize), map: &Input, part2: bool) -> Vec<(us
             if *c != '#' {
                 output.push(cand);
             }
-        } else {
-            if *c == '.' {
-                output.push(cand);
-            } else if *c == '<' && point.0 > cand.0 {
-                output.push(cand);
-            } else if *c == '>' && point.0 < cand.0 {
-                output.push(cand);
-            } else if *c == '^' && point.1 > cand.1 {
-                output.push(cand);
-            } else if *c == 'v' && point.1 < cand.1 {
-                output.push(cand);
-            }
+        } else if *c == '.'
+            || *c == '<' && point.0 > cand.0
+            || *c == '>' && point.0 < cand.0
+            || *c == '^' && point.1 > cand.1
+            || *c == 'v' && point.1 < cand.1
+        {
+            output.push(cand);
         }
     }
     output
@@ -97,7 +91,7 @@ pub fn find_save_points(input: &Input) -> HashMap<(usize, usize), Vec<(usize, us
     let mut explored: Vec<(usize, usize)> = vec![start];
     let mut save_points: HashMap<(usize, usize), Vec<(usize, usize)>> = HashMap::new();
     loop {
-        if frontier.len() == 0 {
+        if frontier.is_empty() {
             break;
         }
 
@@ -127,7 +121,7 @@ pub fn find_save_points(input: &Input) -> HashMap<(usize, usize), Vec<(usize, us
 }
 
 pub fn find_save_points2(input: &Input) -> HashMap<(usize, usize), Vec<(usize, usize)>> {
-    let points: Vec<_> = input.iter().filter(|(k, &v)| v == '.').collect();
+    let points: Vec<_> = input.iter().filter(|(_k, &v)| v == '.').collect();
 
     let mut output = HashMap::new();
     for (pt, _) in points {
@@ -145,7 +139,7 @@ pub fn path_length(start: (usize, usize), input: &Input) -> (usize, (usize, usiz
     let mut explored: Vec<(usize, usize)> = vec![start];
     let mut last = start;
     loop {
-        if frontier.len() == 0 {
+        if frontier.is_empty() {
             break;
         }
 
@@ -186,7 +180,7 @@ pub fn part1(input: &Input) -> usize {
 
     let mut cids = vec![0];
     loop {
-        if cids.len() == 0 {
+        if cids.is_empty() {
             break;
         }
 
@@ -223,7 +217,6 @@ pub fn path_length2(
 ) -> (usize, (usize, usize)) {
     let mut frontier = vec![start];
     let mut explored: Vec<(usize, usize)> = vec![start];
-    let mut last = start;
     let mut ends = vec![];
     let mut bail = false;
     let start_map = input
@@ -238,7 +231,7 @@ pub fn path_length2(
         .map(|(k, _v)| k)
         .collect::<Vec<_>>()[0];
     loop {
-        if frontier.len() == 0 {
+        if frontier.is_empty() {
             break;
         }
 
@@ -267,15 +260,13 @@ pub fn path_length2(
         if bail {
             break;
         }
-        last = frontier[0];
         frontier = new_frontier;
     }
 
     // "ends" should have 2 save_points
     for end in &ends {
         if (end.0 as i64 - start.0 as i64).abs() + (end.1 as i64 - start.1 as i64).abs() > 1 {
-            last = *end;
-            return (explored.len() - 1, last);
+            return (explored.len() - 1, *end);
         }
     }
     println!("ends: {:?}", ends);
@@ -295,7 +286,7 @@ pub fn part2(input: &Input) -> usize {
     //println!("save_points: {:?}", save_points);
     //
     let mut path_length2_cache: HashMap<(usize, usize), (usize, (usize, usize))> = HashMap::new();
-    for (sp, starts) in &save_points {
+    for starts in save_points.values() {
         for n in starts {
             let (length, next_dst) = path_length2(*n, &save_points, input);
             path_length2_cache.insert(*n, (length, next_dst));
@@ -309,7 +300,7 @@ pub fn part2(input: &Input) -> usize {
 
     let mut cids = vec![0];
     loop {
-        if cids.len() == 0 {
+        if cids.is_empty() {
             break;
         }
 

@@ -1,6 +1,3 @@
-use rayon::prelude::*;
-use std::collections::HashSet;
-
 pub type Input = Vec<Snowflake>;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -36,9 +33,6 @@ impl Snowflake {
             return None;
         }
         let p0 = self.evaluate(t0);
-        let p1 = other.evaluate(t1);
-        //println!("p0: {:?}", p0);
-        //println!("p1: {:?}", p1);
         Some((p0.0, p0.1))
     }
 
@@ -64,11 +58,7 @@ impl Snowflake {
         let p_intersect = self.intersection_xy(other);
 
         if let Some(point) = p_intersect {
-            if (point.0 > low && point.0 < high && point.1 > low && point.1 < high) {
-                true
-            } else {
-                false
-            }
+            point.0 > low && point.0 < high && point.1 > low && point.1 < high
         } else {
             false
         }
@@ -104,12 +94,9 @@ pub fn solve_part1(input: &Input, low: f64, high: f64) -> usize {
     let mut output = 0;
     for i in 0..n_flakes {
         let flake1 = input[i];
-        for j in i + 1..n_flakes {
-            let flake2 = input[j];
-            let mut intersected = false;
-            if flake1.intersect_in_bounds(&flake2, low, high) {
+        for flake2 in &input[i + 1..] {
+            if flake1.intersect_in_bounds(flake2, low, high) {
                 output += 1;
-                intersected = true;
             }
         }
     }
@@ -121,20 +108,8 @@ pub fn part1(input: &Input) -> usize {
     solve_part1(input, 200000000000000.0, 400000000000000.0)
 }
 
-pub fn check_assumption(pos: f64, vel: f64, input: &Input) -> bool {
-    for flake in input {
-        let t = (flake.pos.0 - pos) / (vel - flake.vel.0);
-        if t < 0.0 {
-            return false;
-        }
-    }
-    let t1 = (input[0].pos.0 - pos) / (vel - input[0].vel.0);
-    println!("t1: {}", t1);
-    true
-}
-
 #[aoc(day24, part2)]
-pub fn part2(input: &Input) -> i64 {
+pub fn part2(_input: &Input) -> i64 {
     // Solve this stupid system of equations with sympy, see `day24.py`
     808107741406756
 }
