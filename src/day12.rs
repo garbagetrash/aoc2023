@@ -1,5 +1,3 @@
-use std::io::stdin;
-use std::io::Read;
 use rayon::prelude::*;
 
 type Input = Vec<(String, Vec<usize>)>;
@@ -55,7 +53,7 @@ fn check_remaining_hashes(n: usize, seq: &str, arr: &str) -> bool {
 // The concept here is that a chunk of #'s will never be a valid match on leading '.', only on '?'
 // or '#', so just skip to those.
 fn start_lower_bound(arr: &str) -> usize {
-    if let Some(idx) = arr.find(&['?', '#']) {
+    if let Some(idx) = arr.find(['?', '#']) {
         if idx > 0 {
             return idx - 1;
         } else {
@@ -80,40 +78,35 @@ fn enumerate_idxs(chunks: &[String], arr: &str) -> usize {
 }
 
 fn solve(chunks: &[String], arr: &str) -> usize {
-
     // Get a lower bound on the starting index.
     let i_lower = start_lower_bound(arr);
 
     // This grabs an upper bound of the number of spaces we need to check.
     let space = enumerate_idxs(chunks, arr);
 
-    /*
-    println!("i_lower: {}", i_lower);
-    println!("space: {}", space);
-    */
-
-    let output = (i_lower..space).into_par_iter().map(|i| {
-        if chunks.len() == 1 {
-            // This is the last chunk, is _must_ catch the '#' detected by `i_lower` so we only have to
-            // do 1 check here else it's no good. Also it must cover the _remaining_ '#'s as well.
-            if check_seq(i, &chunks[0], &arr) && check_remaining_hashes(i, &chunks[0], &arr) {
-                1
+    (i_lower..space)
+        .into_par_iter()
+        .map(|i| {
+            if chunks.len() == 1 {
+                // This is the last chunk, is _must_ catch the '#' detected by `i_lower` so we only have to
+                // do 1 check here else it's no good. Also it must cover the _remaining_ '#'s as well.
+                if check_seq(i, &chunks[0], arr) && check_remaining_hashes(i, &chunks[0], arr) {
+                    1
+                } else {
+                    0
+                }
             } else {
-                0
+                // More than 1 chunk means sum up all valid combos for each chunk index
+                if check_seq(i, &chunks[0], arr) {
+                    // If we get here then _this_ chunk is valid, so what about chunks farther on?
+                    let offset = i + chunks[0].len() - 1;
+                    solve(&chunks[1..], &arr[offset..])
+                } else {
+                    0
+                }
             }
-        } else {
-            // More than 1 chunk means sum up all valid combos for each chunk index
-            if check_seq(i, &chunks[0], &arr) {
-                // If we get here then _this_ chunk is valid, so what about chunks farther on?
-                let offset = i + chunks[0].len() - 1;
-                solve(&chunks[1..], &arr[offset..])
-            } else {
-                0
-            }
-        }
-    }).sum();
-    //println!("return {}", output);
-    output
+        })
+        .sum()
 }
 
 #[aoc(day12, part1)]
@@ -125,22 +118,7 @@ pub fn part1(input: &Input) -> usize {
             let mut aug_arr = arr.clone();
             aug_arr.insert(0, '.');
             aug_arr.push('.');
-            /*
-            println!();
-            println!("##################################################################");
-            println!();
-            println!("arr:      {}", arr);
-            println!("aug_arr:  {}", aug_arr);
-            println!("chunks: {:?}", chunks);
-            */
-            let value = solve(&chunks, &aug_arr);
-            /*
-            println!("value: {}", value);
-            println!();
-            println!("##################################################################");
-            println!();
-            */
-            value
+            solve(&chunks, &aug_arr)
         })
         .sum()
 }
@@ -156,14 +134,15 @@ fn unfold(arr: &str) -> String {
     output
 }
 
+#[allow(dead_code)]
 fn solve2(chunks: &[String], arr: &str) -> usize {
     let first = solve(chunks, arr);
 
     let minchunklen = chunks.iter().map(|c| c.len()).sum::<usize>() - (chunks.len() - 1);
-    if arr.chars().nth(1).unwrap() == '#' || arr.chars().nth(arr.len() - 2).unwrap() == '#' {
-        if minchunklen == arr.len() {
-            return first.pow(5);
-        }
+    if (arr.chars().nth(1).unwrap() == '#' || arr.chars().nth(arr.len() - 2).unwrap() == '#')
+        && minchunklen == arr.len()
+    {
+        return first.pow(5);
     }
 
     let mut alt0 = arr.to_string();
@@ -184,7 +163,6 @@ fn solve2(chunks: &[String], arr: &str) -> usize {
 #[aoc(day12, part2)]
 // WARNING: > 12 hour runtime.
 pub fn part2(input: &Input) -> usize {
-    let mut cntr = 0;
     input
         .par_iter()
         .map(|(arr, _seg)| {
@@ -198,8 +176,7 @@ pub fn part2(input: &Input) -> usize {
             let mut aug_arr = arr.clone();
             aug_arr.insert(0, '.');
             aug_arr.push('.');
-            let value = solve(&chunks, &aug_arr);
-            value
+            solve(&chunks, &aug_arr)
         })
         .sum()
     /*
